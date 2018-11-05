@@ -1,0 +1,12 @@
+Route53 Concepts: https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/route-53-concepts.html
+
+Domain Registration Concepts
+  Domain name: example.com
+  Domain registrar: Company that process domain registration; Amazon -> for TLDs (Top Level Domains) like .com, .net, .org; Gandi -> for TLDs like .apartments, .boutique
+  Domain registry: Company that owns right to sell domains
+  Domain reseller: Company that sells domain names; e.g. Amazon Route 53
+  TLD: last part of domain name -> .com, .org
+    Generic: .bike, .hocky
+    Geographic: .in
+
+Domain Name Concepts:
