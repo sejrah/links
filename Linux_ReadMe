@@ -1,0 +1,38 @@
+#Linux
+Get Linux flavor
+cat /etc/*-release
+
+# Set proxy server, replace host:port with values for your servers
+ENV http_proxy firewall:80
+ENV https_proxy firewall:443
+
+sudo yum update -yum
+sudo yum install -y docker
+sudo service docker start
+sudo usermod -a -G docker ec2-usermod
+yum clean packages
+yum clean headers
+yum clean metadata
+yum clean all
+
+rm -rf data
+
+#list all environment variables
+printenv
+printenv less
+echo $AWS_ACCESS_KEY_ID
+
+#Run sh file
+bash setup.sh
+
+## To find out top 10 largest file/directories
+du -a /var | sort -n -r | head -n 10
+
+# Network
+ifconfig
+ping <host>
+dig <Application Load Balancer DNS name>
+	e.g dig internal-<some name>-alb-<account number>.us-east-1.elb.amazonaws.com
+nc -zv <Application Load Balancer DNS name> <port>
+	e.g nc internal-<some name>-alb-<account number>.us-east-1.elb.amazonaws.com 444
+nc -zv <host> <port>
