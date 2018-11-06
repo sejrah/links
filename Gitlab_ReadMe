@@ -1,0 +1,36 @@
+#Gitlab
+
+sudo yum -y install git*
+
+1.  Add git host to host file (/etc/hosts)
+    internal-<some name>-alb-<account number>.us-east-1.elb.amazonaws.com gitlab.example.com
+
+2.  You may need to add host to ~/.ssh/config file
+    # GitLab.com server
+    Host gitlab.example.com
+    RSAAuthentication yes
+    IdentityFile ~/.ssh/id_rsa
+
+2.  Generate key pair
+    Browse to .ssh folder and create id_rsa private key and public key
+    Windows: cd C:\Users\BBGIHV7\.ssh
+    Linux: cd ~\.ssh
+
+    ~/.ssh $ ssh-keygen -t rsa -C "sejrah@hotmail.com" -b 4096
+    
+3.  Login to Gitlab console and copy id_rsa.pub to gitlab ssh keys section
+
+4.  On Linux/Windows:
+    If only HTTPS is enabled, you may need to 
+    git config --global http.sslVerify "false"
+    git clone --single-branch -b dev https://<user_name>@<host>/<project.git> 
+
+Extra:
+git@<host>:<port>/<project>.git
+git fetch
+
+Get linux flavor: cat /etc/*-release
+It's fedora so follow this link: https://chewett.co.uk/blog/841/installing-root-certificate-authority-fedora-26/
+sudo yum install ca-certificates
+/etc/pki/ca-trust/source/anchors -> copy pem file here
+sudo update-ca-trust
