@@ -1,0 +1,10 @@
+# Remove unused security groups
+aws ec2 describe-security-groups --query 'SecurityGroups[*].GroupId'  --output text | tr '\t' '\n'| sort
+aws ec2 describe-instances --query 'Reservations[*].Instances[*].SecurityGroups[*].GroupId' --output text | tr '\t' '\n' | sort | uniq
+comm -23  <(aws ec2 describe-security-groups --query 'SecurityGroups[*].GroupId'  --output text | tr '\t' '\n'| sort) <(aws ec2 describe-instances --query 'Reservations[*].Instances[*].SecurityGroups[*].GroupId' --output text | tr '\t' '\n' | sort | uniq)
+
+aws ec2 describe-security-groups --group-ids "groupid 1" "groupid 2" > unused_security_groups.json
+
+Unused groups:
+aws ec2 delete-security-group --group-id "<groupid>"
+
