@@ -1,0 +1,38 @@
+# install unzip
+sudo yum install unzip
+sudo yum/apt-get install unzip
+
+# unzip terraform
+cd /home/ec2-user/download
+curl -o https://releases.hashicorp.com/terraform/0.11.7/terraform_0.11.7_linux_amd64.zip > sudo unzip /usr/local/bin/terraform
+terraform -v
+
+# create working directory
+cd /home/ec2-user/
+mkdir /home/ec2-user/terraform && cd /home/ec2-user/terraform
+
+
+# write code
+touch template.tf
+terraform fmt
+terrafrom validate
+
+terraform init
+terrafrom plan
+terraform apply
+
+
+terraform state show
+terrafrom state list
+terraform state show aws_instance.terraform-test-instance
+
+terraform graph
+sudo yum install graphviz
+terraform graph -verbose | dot -Tpng > terraform_graph.png
+
+
+terraform destroy
+
+terraform show
+
+terraform import aws_instance.example i-07095d2dbf622149d
