@@ -1,0 +1,562 @@
+## Docker
+
+ENV http_proxy firewall:80
+ENV https_proxy firewall:443
+
+sudo yum update -yum
+sudo yum install -y docker
+sudo service docker start
+sudo usermod -a -G docker ec2-usermod
+yum clean packages
+yum clean headers
+yum clean metadata
+yum clean all
+  
+docker rm $(docker ps -aq)
+docker inspect 22740292f4df | grep IPAddress
+
+#docker-compose
+sudo curl -L "https://github.com/docker/compose/releases/download/1.22.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+docker-compose --version
+
+#docker-compose
+docker-compose up -d
+
+
+## Installation
+sudo yum update -yum
+sudo yum install -y docker
+sudo service docker start
+sudo usermod -a -G docker ec2-usermod
+
+## List Docker CLI commands
+docker
+docker container --help
+
+## Display Docker version and info
+docker --version
+docker version
+docker info
+
+## Execute Docker image
+docker run hello-world
+
+## List Docker images
+docker images or docker image ls
+
+## List Docker containers (running, all, all in quiet mode)
+docker container ls
+docker container ls --all
+docker container ls -aq
+docker ps -a or docker container ls -all
+docker ps
+
+## Concepts
+## Stack - Defines interactions of all the services
+## Service - Defines how container behave in production
+## Task - A single container running in a service
+## Container - its an app
+
+## Container
+    ## Dockerfile
+        Defines what goes on in the environemnt inside your container
+        Access to resources like networking interfaces and disk drives is virtualized
+        e.g.
+            # Use an official Python runtime as a parent image
+            FROM python:2.7-slim
+
+            # Set the working directory to /app
+            WORKDIR /app
+
+            # Copy the current directory contents into the container at /app
+            ADD . /app
+
+            # Install any needed packages specified in requirements.txt
+            RUN pip install --trusted-host pypi.python.org -r requirements.txt
+
+            # Make port 80 available to the world outside this container
+            EXPOSE 80
+
+            # Define environment variable
+            ENV NAME World
+            
+            ## If you are behind a proxy server, add following lines to Docekrfile
+            ## Set proxy server, replace host:port with values for your servers
+            ## ENV http_proxy host:port
+            ## ENV https_proxy host:port
+
+            # Run app.py when the container launches
+            CMD ["python", "app.py"]
+    
+    ## Build image
+    docker build -t friendlyhello .
+    docker build -t jenkins-master .
+    docker build -t <REPO_NAME>:TAG .
+    e.g. docker build -t ECSRepository:latest .
+    
+    ## Proxy server settings: Add http_proxy and https_proxy to Dockerfile
+    ## DNS settings: edit /etc/docker/daemon.json with the dns key
+        {
+            "dns": ["your_dns_address", "8.8.8.8"]
+        }
+    ## Whenever you save daemon.json, restart docker service
+    sudo service docker restart
+    
+    ## Run app
+    docker run -p 4000:80 frienldyhello
+    ifconfig
+    elinks localhost:4000
+    elinks 0.0.0.0:4000
+    elinks 10.98.81.146:4000
+    elinks 172.17.0.1:4000
+    
+    ## Run app in detached mode
+    docker run -d -p 4000:80 friendlyhello
+    
+    ## Login using docker command returned by the command below
+    aws ecr get-login --region <region>
+    docker login -u AWS -p <password>  https://608380362190.dkr.ecr.us-east-1.amazonaws.com
+    OR
+    docker login eval $(aws ecr get-login --region <region>)
+    
+    ## Tag image
+    docker tag REPOSITORY_NAME:TAG AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/REPOSITORY_NAME:TAG
+    docker tag jenkins_master:latest AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/jenkins_master:latest
+    
+    ## Push image to ECR
+    docker push AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/REPOSITORY_NAME:TAG
+    docker push AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/jenkins-master:latest
+    
+    ## Pull and run image from the remote repository
+    docker run -p 80:80 username/repository:tag
+## Service
+    ## Different pieces of the app are called "services"
+    ## Video sharing site: service for storing application data to database, service for video transcoding,in background, service for front-end
+    ## Services are just "containers in production"
+    ## Service only runs one image, but it codifies the way that image runs - what ports irt should use, haow many replicas of the container should run
+    ## Usage: scale app, enable load-balancing
+    ## Needs docker compose
+    ## docker-compose.yml
+        version: "3"
+        services:
+          web:
+            # replace username/repo:tag with your name and image details
+            image: username/repo:tag
+            deploy:
+              replicas: 2
+              resources:
+                limits:
+                  cpus: "0.1"
+                  memory: 50M
+              restart_policy:
+                condition: on-failure
+            ports:
+              - "4000:80"
+            networks:
+              - webnet
+        networks:
+          webnet:
+    ## Make this node swarm manager
+    docker swarm init
+    
+    ## Run app
+    docker stack deploy -c docker-compose.yml getstartedlab
+    
+    ## List services
+    docker service ls
+    
+    ## List stack 
+    docker stack ps getstartedlab
+    
+    ## List tasks in service - each output line is task
+    docker service ps getstartedlab_web
+    
+    ## List underlying containers - look for matchign names e.g. getstartedlab_web
+    docker container ls -q
+    
+    ## Scale the app -> change value of replicas in docker-compose.yml then "docker stack deploy -c docker-compose.yml getstartedlab"
+    
+    ## Take down the app
+    docker stack rm getstartedlab
+    
+    ## Take down the swarm
+    docker swarm leave --force
+
+## Swarm - it's "Dockerized" cluster
+  ## needs docker-machine
+  curl -L https://github.com/docker/machine/releases/download/v0.15.0/docker-machine-$(uname -s)-$(uname -m) >/tmp/docker-machine &&
+  chmod +x /tmp/docker-machine &&
+  sudo cp /tmp/docker-machine /usr/local/bin/docker-machine
+  
+  docker-machine --version
+  
+  ## Swarm cluster
+  Swarm is a group of machines that are running Docker and joined into a cluster.
+  Now, those same Docker commands are executed on a cluster by a swarm manager.
+  These machines in swarm can be physical or virtual. After joining a swarm, they are referred to as nodes.
+  Swarm manager can use several stategies to run containers:
+    "emptiest node" - which fills the least utilized machines with containers
+    "global" - which ensures that each machine gets exactly one instance of the specified container
+    Specify these strategies in Compose file
+  Swarm managers are the only machines in swarm that can execute commands, or authorize other machines to join the swarm as workers.
+    Workers are just there to provide capacity and do not have the authority to tell any other machine what it can and cannot do.
+  ## Make this node swarm manager
+  docker swarm init
+  
+  ## Join swarm as workers
+  docker swarm  join
+
+  ## To create VM, you needs hyprvisor -> install Oracle VirtualBox; then
+  docker-machine create --driver virtualbox myvm1
+  docker-machine create --driver virtualbox myvm2
+  
+  ## List machines
+  docker-machine ls
+  
+  ## Initialize swarm and add nodes
+  docker-machine ssh myvm1 "docker swarm init --advertise-addr <myvm1 ip>"
+  or 
+  docker-machine --native-ssh ssh myvm1 ...
+  
+  docker-machine ssh myvm2 "docker swarm join -- token <token> <ip>:2377"
+  
+  docker-machine ssh myvm1 "docker node ls"
+  
+  ## Configure docker-machine shell to the swarm manager (instead of keep doing "docker-machine ssh")
+  docker-machine env myvm1
+  export DOCKER_TLS_VERIFY="1"
+  export DOCKER_HOST="tcp://192.168.99.100:2376"
+  export DOCKER_CERT_PATH="/Users/sam/.docker/machine/machines/myvm1"
+  export DOCKER_MACHINE_NAME="myvm1"
+  
+  eval $
+  
+  ## Now docker-machien ls will list all machines in swarm
+  
+  ## Run app
+  docker stack deploy -c docker-compose.yml getstartedlab
+  or
+  docker login registry.example.com
+  docker stack deploy --with-registry-auth -c docker-compose.yml getstartedlab
+  
+  docker stack ps getstartedlab
+  
+  ## Copy files across machines
+  docker-machine scp <file> <machine>:~
+  
+  ## The network that is create (webnet) is shared between two nodes and load-balancing
+  ## Routing mesh
+  Nodes in swarm particiapte in an ingress routing mesh.
+  This ensures that a service deployed at a certain port within swarm always has taht port reserved to itself, no matter what node is actually running the container
+  To use ingress network in swarm, following ports needs to be open between swarm nodes before you enable swarm mode:
+  Port 7946 TCP/UDP for container network discovery
+  Port 4789 UDP for container ingress network
+
+  ## Cleanup and reboot
+  docker stack rm getstartedlab
+  docker-machine ssh myvm2 "docker swarm leave"
+  docker-machine ssh myvm1 "docker swarm leave --force"
+  ## to unset docker-machine shell variable settings
+  eval $(docker-machine env -u)
+  ## to restart stopped machine
+  docker-machine start <machine-name>
+
+## Stack
+  It is group of interrelated services that share dependencies, and can be orchestrated and scaled togather.
+  Need Compose file and "docker stack deploy"
+  ## Run app
+  docker stack deploy -c docker-compose.yml getstartedlab
+    
+  ## List stack 
+  docker stack ps getstartedlab
+  
+  ## Take down the app
+  docker stack rm getstartedlab
+
+## Docker Cloud
+  to manage app on AWS, DigitalOcean, Azure
+  1. Connect Docker cloud with your preferred provider, grnating Docker cloud permission to automatically provision and "Dockerize" VMs for you
+  2. User Docker Cloud to create your computing resources and create your swarm
+  3. Deploy app
+
+Docker architecture
+TODO: Connect Docker client (CLI) to remote Docker 
+TODO: Connect Docker client (CLI) to non-default CBP registry 
+Daemon
+  listens for Docker API requests
+  manages Docker objects such as images, containers, networks, and volumes
+  communicate with other daemons
+Client
+  primary way to interact with Docker
+  it can communicate with more than one daemon
+Registry
+  Docker Hub, docker Cloud are publcic registry
+  Docker by default looks for images on Docker Hub by default
+  DDC (Docker Data Center) includes DTR (Docker Trusted Registry)
+Docker Objects
+  Images
+  Containers
+    You can control how isolated a container's network, storage, or other underlying subsystems are from other containers or from the host machine
+    docker run
+      Creates a network interface to conenct the container to the default network if no networking option is specified
+      It includes assigning an I Paddress to the container. By default, containers can conenct to external networks using the host machine's network connection
+  Services
+    Allow you to scale containers across multiple Docker daemons, which all work togather as a swarm with multiple managers and workers
+    Each member of a swarm is a Docker daemon, and all daemons communicate using the Docker API
+    Allows you to define the desired state, such as number of replicas of the service
+    By default service is load-balanced across all worker nodes
+Underlying technology
+  Namespaces
+    provides isolated workspace called the container
+    Docker creates a set of namespaces for container, when you run a container
+    Docker uses these namespaces: pid, net, ipc, mnt, uts (Unix Timesharing System)
+  Control Groups
+    it limits an application to a specific set of resources
+  Union File Systems (UnisonFS)
+    it operates by creating layers
+    Docker engine can use multiple variants of UnionFS: AUFS, btrfs, vfs, DeviceMapper
+  Container format
+    Docker Engine combines namespaces, control groups, and UnionFS into a wrapper called container format
+    default format is libcontainer
+
+Best practices:
+Keep images small
+  start with appropriate base image - openjdk instead of ubuntu and openjdk
+  use multistage builds
+    maven to build; reset to tomcat
+    supply multiple commands in one RUN command
+  create base image if there are lot of common
+  keep production image lean, create debug image using production image as base image
+  tag with useful tags - codify version info, intended destination (prod, test), stability
+    do not rely on latest tag
+Where and how to persist application data
+  Avoid storing application data in container's writable layer
+  Use volumes or bind mounts
+  Use bind mounts in development; for production use volume
+  Use secrets to store sensitive application data
+  Use configs for non-sensitive data such as configuration files
+  Consider using single-replica services instead of standalone container to take advantage of service-only features
+Use swarm when possible
+  design application with the ability to scale using swarm services
+  Even if you need to run single instance of your application, swarm services provide several advantages
+    A service's configuration is declarative
+  Networks and volumes can be connected and disconnected from swarm services
+  Features like secrets and configs are only available to services
+  Let docker stack deploy handle any image pull; instead of docker pull
+  There are limitationa around sharing data amongt nodes of a swarm service
+    For AWS or Azure, use Cloudstor plugin to share data amongst swarm service nodes
+    Or write application data into a separate database which supports simultaneous updates
+Use CI/CD for testing and deployment
+  when you check a change into source control or create a pull request, CI/CD pipeline automatically build and tag a Docker image and test it
+  With Docker EE, have your development, testing and security teams to sign images before they can be deployed into production
+Development vs. production
+  development
+    use bind mounts
+    use Docker for Mac or Docker for Windows
+    ok to not worry about time drift
+  production
+    use volumes
+    use Docker EE with userns mapping for greater isolation
+    always run NTP client on Docker host and within each container process and sync them all to the same NTP servie
+      If using swarm services, also ensure that each Docker node syncs its clocks to the same time source as the containers
+
+
+Best practices for writing Dockerfile
+  Create ephemeral containers - container can be stopped and destroyed, then rebuilt and replaced with an absolute minimum set up and configuration
+  Understand build context - Regardless where Dockerfile actually lives, all recursive contents of files and directories in 
+    the current directory are sent to the Docekr daemon as the build context
+  Pipe Dockerfile through stdin
+    local build-context
+      docker build -t foo . -f-<<EOF
+      FROM busybox
+      RUN echo "hello world"
+      COPY . /my-copied-files
+      EOF
+    remote build-context
+      docker build -t foo https://github.com/thajeztah/pgadmin4-docker.git -f-<<EOF
+      FROM busybox
+      COPY LICENSE config_local.py /usr/local/lib/python2.7/site-packages/pgadmin4/
+      EOF
+  Exclude with .dockerignore
+  Use multi-stage builds (reset image - maven then ubuntu)
+    e.g. if your build contains several layers, you can order them from the less frequently changed to more frequesntly changed
+      Install tools you need to build your application
+      Install or update library dependencies
+      Generate your application
+  Don't install unnecessary packages
+  Decouple applications
+    Each container shoudl have only one concern
+      e.g. web application -> three containers - web, database and in-memory cache
+    Limiting each container to one process is good rule of thumb; but is in not hard and fast rule
+      Celery can spawn multiple worker processes
+      Apache can create one process per request
+    If containers depend on each other, you can use Docker container networks to ensure that these containers can communicate
+  Minimize the number of layers
+    RUN, COPY and ADD creates layers, other instructions create temporary intermediate images, and do not directly increase the size of the build
+    Use multi-stage builds and only copy the artifacts you need into the final image
+      This allows you to include tools and debug information in your intermediate build stages without increasing the size of the final image
+  Sort multi-line arguments alphabetically
+  Leverage build cache
+  Docker instructions
+    FROM - Alpine image is tightly controleld and small in size while being full Linux distribution
+    LABEL -usage: organize image by project, record licensing information, to aid in automation
+      examples:
+      LABEL com.example.version="0.0.1-beta"
+      LABEL vendor1="ACME Incorporated"
+      LABEL vendor2=ZENITH\ Incorporated
+      LABEL com.example.release-date="2015-02-12"
+      LABEL com.example.version.is-production=""
+    RUN - split long or complex RUN statements on multiple lines separated with backslashes
+    APT-GET
+      Avoid RUN apt-get upgrade and dist-upgrade, as many of the "essential" packages from the parent images
+        cannot upgrade inside an unpriviledged container
+      If a package contained in the parent image is out-of-date, contact its maintainers
+      If you know there is particular package, foo, that needs to be updated, use apt-get install -y foo to update automatically
+    CMD
+      use this format - CMD ["executable", "param1", "param2"…]
+      CMD should rarely be used in the manner of CMD ["aram1", "param2"] in conjuction eith ENTRYPOINT
+    EXPOSE
+    ENV
+      FROM alpine
+      ENV ADMIN_USER="mark"
+      RUN echo $ADMIN_USER > ./mark
+      RUN unset ADMIN_USER
+      CMD sh
+      $ docker run --rm -it test sh echo $ADMIN_USER
+      mark
+      
+      Solution:
+      FROM alpine
+      RUN export ADMIN_USER="mark" \
+        && echo $ADMIN_USER > ./mark \
+        && unset ADMIN_USER
+      CMD sh
+      $ docker run --rm -it test sh echo $ADMIN_USER
+    ADD or COPY
+      COPY is preferred over ADD
+      ADD does more than COPY, like, local-only tar extraction, remote URL support
+      Using ADD to fetch packages from remotr URL is strongly discouraged - use curl or wget
+    ENTRYPOINT
+      best use is to set the image's main command
+    VOLUME
+      it should be used to expose any of this by your docker container
+        any database storage area
+        configuration storage
+        files/folders created
+      use for any mutable and/or user-serviceable parts of your image
+    USER
+      If a service can run without priviledges, use USER to change to a non-root yser
+      Create user or group with something like
+        RUN groupadd -r postgres && useradd --no-log-init -r -g postgres postgres.
+      User and groups in an image are assigned a non-deterministic UID/GID; so if it's critical you should assign an explicit UID/GID
+    WORKDIR
+      use absolute path for clarity and readability
+      Avoid RUN cd.. && do-something
+    ONBUILD
+    
+    Create Base Image
+      Base image (no FROM or FROM scratch) vs. Parent image (FROM jenkins/jenkins:latest)
+      scratch - can't pull it, run it, tag it
+
+Multi-stage builds
+  <Read from docs.docker.com>
+    
+Dockerfile reference
+  <Read from docs.docker.com>
+  
+Manage images
+  Docker registry
+    Docker Hub
+    Docker Trusted Registry
+      It is part of Docker EE
+      Private, secure with features such as image signing and content trust, role-based access controls
+    Private registry
+  Content trust
+    gives ability to both verify the integrity and the publisher of all data received from a registry over any chanel
+
+Networking
+  Docker manipulates iptables rules on Linux or routing rules on Windows servers to provide network isolation
+  Docker forms and encapsulates packets and handles encryption
+  
+  Docker's networking  subsystem is pluggable, using drivers.
+  Drivers:
+    bridge
+      default
+      used when applications run in standalone containers that need to communicate
+    host
+      For standalone containers, remove network isolation between container and Docker host, and use host's networking directly
+    overlay
+      connects multiple Docker daemons together and enable searm services to communicate with each other
+      also be used to facilitate communication between swarm service and a standalone container, or between two standalone containers on different Docker daemons
+    macvlan
+      allow you to assign MAC address to a container, making it appear as a physical device on your network
+      Docker daemon routes traffic to containers by their MAC addresses
+      best choice when dealing with legacy applications that expect to be directly connected to physical network, rather than routed through the Docker host's network stack
+    none
+      disables all networking. Usually used in conjuction with a swarm network driver
+      Not available for swarm services
+    Network plugins
+    Usage:
+      User-defined bridge networks are best when you need multiple containers to communicate on the same Docker host
+      Host networks are best when network should be isolated from the Docker host, but you want other aspects of the container to be isolated
+      Overlay networks are best when you need containers running on different Docker hosts to communucate, or when multiple applications work together using swarm services
+      Macvlan networks are best when you are migrating from a VM setup or need your containers to look physical hosts on your network, each with a unique MAC address
+      Third-party network plugins allow you to integrate Docker with specialized network stacks
+    
+    Docker EE networking features
+      only possible when using Docker EE and managing your Docker services using UCP
+      HTTP routing mesh - allows you to share the same network IP address and port among multiple services
+        UCP routes the traffic to the appropriate service using the combination of hostname and port as requested from the client
+      Session stickiness - allows you to specify information in the HTTP header which UCP uses to route subsequent requests to the same service stack, for applications which require stateful sessions
+Manage application data
+  Writing into container's writable layer requires a storage driver to manage the file system.
+    Storage driver provides a union filesystem, using Linux kernel.
+    This extra abstraction reduces performance as compared to using data volumes, which write directly to the host filesystem.
+  Docker has two options for containers to store files in the host machine: volumes , and bind mounts
+    If you are using Docker on Linux you can also use a tmpfs mounts
+  
+  Volumes
+    are stored in a part of the host filesystem which is managed by Docker (/var/lib/docker/volumes/ on Linux)
+    Non-docker process should not modify this part of the filesystem
+    are best way to persist data in Docker
+    
+    Create and managed by docker. You can create a volume explicitly using the "docker volume create", or Docker can create a volume during container or service creation
+    A given volume can be mounted into multiple containers simulteneously.
+    It may be named or anonymous.
+    They also support use of volume drivers - which allow you to store your data on remote hosts or cloud providers, among other possibilities
+    
+    Use cases:
+      Sharing data among multiple running containers
+      When Docker host is not guaranted to have a given directory or file structure
+      When you want to store container's data on a remote host or a cloud provider, rather than locally
+      When you want to back up, restore, or migrate data from Docker host to another
+  Bind mounts
+    They may be stored anywhere on the host system.
+    They may even be important system files or directories.
+    Non-Docker processes on the Docker host or a Docker container can modify them at any time
+    The file or directory in created on demand if it does not exist
+    One side effect is that you can change the host filesystem via processes running in a container, including creating, modifying, or deleting important system files or directories.
+    
+    Use cases:
+    Sharing configuration files from host machine to containers.
+    This is how Docker provides DNS resolution to containers by default, by mounting /etc/resolve.conf from host machien inot each container
+    Sharing source code or build artifacts between a development environment on the Docker host and a container. e.g mount target/ directory into a container
+    When the file or directory structure of the Docekr host is guranteed to be consistent with the bind mounts the containers require
+  tmpfs
+    are stored in the host system's memory only, and are never written to the host system's filesystem
+    Docker swarm uses tmpfs mounts to mount secrets into a service's containers
+    
+    Use cases:
+    When you do not want the data to persist either on the host machine or within the container - may be for security reason or to protect the perofrmance of the container
+  
+  Volumes and bind mounts can both mounted into containers using -v or --volume flag; tmpfs -> use --tmpfs flag
+  Tips for volumes or bind mounts:
+    If you mount an empty volume into a directory in the container in which files or directories exist,
+      these files or directories are propagated (copied) into the volume.
+      Similarly, if you start a container and specify a volume which does not already exist, an empty volume is created for you.
+      This is good way to pre-populate data that another container needs.
+    If you mount a bind mount or non-empty volume into a directory in the container in which some files or directories exist, 
+      these files or directories are obscured by the mount, just as if you saved files into /mnt on a Linux host and then mounted 
+      a USB drive into /mnt. The contents of /mnt would be obscured by the contents of the USB drive until the USB drive were unmounted. 
+      The obscured files are not removed or altered, but are not accessible while the bind mount or volume is mounted.
