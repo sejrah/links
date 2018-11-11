@@ -1,0 +1,53 @@
+https://medium.com/@aallan/adding-an-external-disk-to-a-raspberry-pi-and-sharing-it-over-the-network-5b321efce86a
+
+Upgrade:
+$ sudo apt-get update
+$ sudo apt-get upgrade
+
+Format:
+Format USB drive (FAT32)
+Windows:Right click -> Format -> FAT32
+Linux:
+$ sudo apt-get install dosfstools
+$ sudo mkfs.vfat /dev/sda1 -n USB
+Mac: Disk Utility application 
+
+Mount:
+On Raspberry Pi
+$ sudo mkdir /mnt/usb
+$ sudo chown -R pi:pi /mnt/usb
+$ sudo mount /dev/sda1 /mnt/usb -o uid=pi,gid=pi
+
+Edit /etc/fstab with following line (so that it reattaches at bootup)
+/dev/sda1 /mnt/usb auto defaults,user 0 1
+
+Making the Disk Available Using NFS:
+$ sudo apt-get install nfs-server
+get ip address using ifconfig (198.192.0.2), so
+Edit /etc/exports with
+# /etc/exports: the access control list for filesystems
+/mnt/usb 192.168.0.0/24(rw,sync)
+
+sudo update-rc.d rpcbind enable && sudo update-rc.d nfs-common enable
+sudo reboot
+
+On another Raspberry pi:
+$ sudo mkdir /mnt/nfs
+$ sudo chown -R pi:pi /mnt/nfs
+$ sudo mount 192.168.0.2:/mnt/usb /mnt/nfs
+Automatically mount on reboot:
+$ sudo apt-get install nfs-common
+$ sudo mkdir /mnt/nfs
+$ sudo chown -R pi:pi /mnt/nfs
+$ sudo apt-get install nfs-common
+Do one of these
+  1.  (it may have problem, so do next step instead) edit /etc/fstab with /dev/sda1 /mnt/nfs auto defaults,user 0 1
+  2.  $ sudo apt-get install autofs
+      $ df -h
+      edit /etc/auto.master with 
+      /mnt/nfs /etc/auto.nfs
+      create /etc/auto.nfs with
+      pi   192.168.0.2:/mnt/usb
+      restart using $ sudo /etc/init.d/autofs restart
+      $ cd /mnt/nfs/pi
+      $ df -h
