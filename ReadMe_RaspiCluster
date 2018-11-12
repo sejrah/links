@@ -4,9 +4,9 @@ Flash Raspbian Stertch Lite into SD card using Etcher.io
 Create an empty ssh file in boot partition
 ssh to Raspberry Pi (master)
 user/password: pi/raspberry
-open config using raspi-config
+open config using raspi-config (or edit /boot/config.txt)
   Name master (worker1, worker2)
-  Change memory split between GPU and system to 16mb
+  Change memory split between GPU and system to 16mb, since we are going to run headless app on this RPis (gpu_mem=16)
 $sudo apt-get update
 Add this to /etc/dhcpcd.conf
 profile static_eth0
