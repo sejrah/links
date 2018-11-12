@@ -19,7 +19,10 @@ $ sudo chown -R pi:pi /mnt/usb
 $ sudo mount /dev/sda1 /mnt/usb -o uid=pi,gid=pi
 
 Edit /etc/fstab with following line (so that it reattaches at bootup)
-/dev/sda1 /mnt/usb auto defaults,user 0 1
+#/dev/sda1 /mnt/usb auto defaults,user 0 1
+#this (below) is hack ->
+get UUID using sudo blkid 
+UUID=A684-7323 /mnt/usb vfat user,umask=000,utf8,flush,noauto 0 0
 
 Making the Disk Available Using NFS:
 $ sudo apt-get install nfs-server
