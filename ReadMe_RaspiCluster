@@ -1,0 +1,33 @@
+Setup Raspberry pi:
+Flash Raspbian Stertch Lite into SD card using Etcher.io
+  https://www.raspberrypi.org/downloads/raspbian/
+Create an empty ssh file in boot partition
+ssh to Raspberry Pi (master)
+open config using raspi-config
+  Name master (worker1, worker2)
+  Change memory split between GPU and system to 16mb
+$sudo apt-get update
+
+Install docker:
+$curl -sSL https://get.docker.com | sh
+$usermod pi -aG docker
+(optional) change default password - $sudo passwd pi
+
+Repeat above steps for remaining Raspberry pi
+
+Create Swarm:
+$docker swarm init
+Run this from other Raspberry pi
+$docker swarm join --token SWMTKN-1-... ... ...
+From master $docker node ls
+
+Extra
+$docker swarm leave
+$docker images
+$docker rmi $(docker images)
+$docker ps -a
+$docker rm $(docker ps -aq)
+$docker stack deploy func --compose-file docker-compose.armhf.yml
+$docker stack rm func
+$docker node promote <node_name>
+$docker service ls
