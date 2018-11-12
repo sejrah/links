@@ -48,3 +48,6 @@ $sudo ./deploy_stack.armhf.sh
 Docker swarm instructs other other RPi to start pulling docker images from the internet and extracting them to the SD card
 To watch progress - $watch 'docker service ls'
 Browse to http://192.168.0.2:8080
+
+Tip:
+Always create image from this base image only - resin/rpi-raspbian; See alexellis/docker-arm
