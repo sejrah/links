@@ -1,6 +1,8 @@
 #Linux
 Get Linux flavor
 cat /etc/*-release
+Show Linux architecture (armvxx or x86_64)
+uname -a
 
 # Set proxy server, replace host:port with values for your servers
 ENV http_proxy firewall:80
