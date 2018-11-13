@@ -1,0 +1,15 @@
+Jenkins jobs on master – why not:
+Master should only be responsible to run Jenkins, Jenkins related configurations and scheduling jobs for slaves
+Configurations related issues (e.g. different jdk versions)
+Not scalable
+
+Build can be run on bare metal or in a containerized environment
+
+ECS Plugin
+https://wiki.jenkins.io/display/JENKINS/Amazon+EC2+Container+Service+Plugin
+
+What’s needed:
+ECS plugin – allows to run build jobs in AWS ECS cluster
+Launch configurations (instance type)
+Number of instances
+
