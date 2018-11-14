@@ -13,3 +13,10 @@ ECS plugin – allows to run build jobs in AWS ECS cluster
 Launch configurations (instance type)
 Number of instances
 
+Upload jnlp-slave to ECR:
+create new repo gate-u/jnlp-slave
+docker pull jenkins/jnlp-slave
+docker tag jenkins/jnlp-slave:latest 414740204422.dkr.ecr.us-east-1.amazonaws.com/gate-u/jnlp-slave:3.27
+docker push 414740204422.dkr.ecr.us-east-1.amazonaws.com/gate-u/jnlp-slave:3.27
+
+Created task definition
