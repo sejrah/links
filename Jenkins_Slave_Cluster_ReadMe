@@ -14,9 +14,121 @@ Launch configurations (instance type)
 Number of instances
 
 Upload jnlp-slave to ECR:
-create new repo gate-u/jnlp-slave
+create new repo <repo_prefix>/jnlp-slave
 docker pull jenkins/jnlp-slave
-docker tag jenkins/jnlp-slave:latest 414740204422.dkr.ecr.us-east-1.amazonaws.com/gate-u/jnlp-slave:3.27
-docker push 414740204422.dkr.ecr.us-east-1.amazonaws.com/gate-u/jnlp-slave:3.27
+docker tag jenkins/jnlp-slave:latest <account_name>.dkr.ecr.us-east-1.amazonaws.com/<repo_prefix>/jnlp-slave:3.27
+docker push <account_name>.dkr.ecr.us-east-1.amazonaws.com/<repo_prefix>/jnlp-slave:3.27
 
-Created task definition
+Create policy <some prefix>-jenkins-slave-ecs-task-policy and add to exisitng <some prefix>_jenkins_user:
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "Stmt1452746887373",
+            "Action": [
+                "ecs:RegisterTaskDefinition",
+                "ecs:ListClusters",
+                "ecs:DescribeContainerInstances",
+                "ecs:ListTaskDefinitions",
+                "ecs:DescribeTaskDefinition"
+            ],
+            "Effect": "Allow",
+            "Resource": "*"
+        },
+        {
+            "Sid": "Stmt1452746887374",
+            "Action": [
+                "ecs:StopTask",
+                "ecs:ListContainerInstances"
+            ],
+            "Effect": "Allow",
+            "Resource": "arn:aws:ecs:us-east-1:<account_name>:cluster/<some cluster>"
+        },
+        {
+            "Sid": "Stmt1452746887375",
+            "Action": [
+                "ecs:RunTask"
+            ],
+            "Effect": "Allow",
+            "Resource": "arn:aws:ecs:us-east-1:<account_name>:task-definition/jenkins-agent:*"
+        },
+        {
+            "Sid": "Stmt1452746887376",
+            "Action": [
+                "ecs:StopTask",
+		"ecs:DescribeTasks"
+            ],
+            "Effect": "Allow",
+            "Resource": "arn:aws:ecs:us-east-1:<account_name>:task/*"
+        }
+    ]
+}
+
+Created access key for user: <some prefix>_jenkins_user:
+
+Create task definition:
+{
+  "executionRoleArn": null,
+  "containerDefinitions": [
+    {
+      "dnsSearchDomains": null,
+      "logConfiguration": null,
+      "entryPoint": null,
+      "portMappings": [],
+      "command": null,
+      "linuxParameters": null,
+      "cpu": 0,
+      "environment": [],
+      "ulimits": null,
+      "dnsServers": null,
+      "mountPoints": [],
+      "workingDirectory": null,
+      "dockerSecurityOptions": null,
+      "memory": 1024,
+      "memoryReservation": null,
+      "volumesFrom": [],
+      "image": "<account_name>.dkr.ecr.us-east-1.amazonaws.com/<repo_prefix>/jnlp-slave:3.27",
+      "disableNetworking": null,
+      "interactive": null,
+      "healthCheck": null,
+      "essential": true,
+      "links": null,
+      "hostname": null,
+      "extraHosts": null,
+      "pseudoTerminal": null,
+      "user": null,
+      "readonlyRootFilesystem": null,
+      "dockerLabels": null,
+      "systemControls": null,
+      "privileged": null,
+      "name": "jnlp-slave"
+    }
+  ],
+  "placementConstraints": [],
+  "memory": null,
+  "taskRoleArn": null,
+  "compatibilities": [
+    "EC2"
+  ],
+  "taskDefinitionArn": "arn:aws:ecs:us-east-1:<account_name>:task-definition/jnlp-slave:1",
+  "family": "jnlp-slave",
+  "requiresAttributes": [
+    {
+      "targetId": null,
+      "targetType": null,
+      "value": null,
+      "name": "com.amazonaws.ecs.capability.ecr-auth"
+    }
+  ],
+  "requiresCompatibilities": [
+    "EC2"
+  ],
+  "networkMode": "bridge",
+  "cpu": null,
+  "revision": 1,
+  "status": "ACTIVE",
+  "volumes": []
+}
+
+Jenkins -> Manage Jenkins -> Add cloud:
+Make sure you specify task definition ARN
