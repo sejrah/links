@@ -354,3 +354,6 @@ root@demohost:~/DockerJenkins# docker inspect <f8d714da441a> | grep IPAddress
 ===============================================================================
 Jenkins with HTTPS Using NGINX and Docker:
 https://itnext.io/setting-up-https-for-jenkins-with-nginx-everything-in-docker-4a118dc29127
+Setting up https on built-in Winstone webserver is not recommended by Jenkins. The alternate is to setup nginx reverse proxy
+
+
