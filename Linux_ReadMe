@@ -11,7 +11,7 @@ ENV https_proxy firewall:443
 sudo yum update -yum
 sudo yum install -y docker
 sudo service docker start
-sudo usermod -a -G docker ec2-usermod
+sudo usermod -a -G docker ec2-user
 yum clean packages
 yum clean headers
 yum clean metadata
