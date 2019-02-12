@@ -49,10 +49,16 @@ AWS in the Public Sector: https://aws.amazon.com/government-education/?sc_ichann
 # Others
 
 https://www.rd.com/health/conditions/15-cancer-symptoms-women-are-likely-to-ignore/1/
+
 https://www.rd.com/health/conditions/signs-cancer-men/1/
+
 https://www.cnbc.com/2017/10/31/this-harvard-study-reveals-how-you-can-be-happier-and-more-successful.html
+
 https://www.cnbc.com/2017/10/31/the-lesson-shark-tanks-kevin-oleary-learned-from-getting-fired.html
+
 https://www.cnbc.com/2017/12/04/kevin-oleary-wont-pay-2-point-50-for-coffee-instead-he-invests-it.html
+
+https://www.cnbc.com/2018/11/15/mark-cuban-heres-why-you-should-teach-your-kids-to-be-entrepreneurs.html
 
 Vitamin B-12 1000 MCG; Fish oil Omega 3 1000 MG; Folic Acid 400 MCG; Vitamin D 1000; Saline water
 
