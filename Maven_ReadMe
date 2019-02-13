@@ -1,0 +1,5 @@
+Variable Name/Value: M2 -> %M2_HOME%\bin
+
+Variable Name/Value: M2_HOME -> C:\development\Apache Software Foundation\apache-maven-3.3.9
+
+Variable Name/Value: MAVEN_OPTS -> -Djavax.net.ssl.trustStore=<.jks full file name> -Djavax.net.ssl.trustStorePassword=<password>
