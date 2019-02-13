@@ -46,6 +46,13 @@ View AWS Public Sector Summit videos
 
 AWS in the Public Sector: https://aws.amazon.com/government-education/?sc_ichannel=ha&sc_icampaign=acq_awsblogsb&sc_icontent=publicsector-resources
 
+http://en.clouddesignpattern.org/index.php/Main_Page
+
+http://daveops.co.uk/category/aws?print=pdf-search
+
+http://aws.amazon.com/architecture
+
+
 # Others
 
 https://www.rd.com/health/conditions/15-cancer-symptoms-women-are-likely-to-ignore/1/
