@@ -64,6 +64,8 @@ https://www.cnbc.com/2017/08/02/the-secret-to-self-motivation-lies-in-this-scien
 
 https://www.psychologytoday.com/blog/brainsnacks/201506/could-be-the-one-real-secret-self-motivation
 
+https://www.cnbc.com/2017/08/02/preparing-students-for-the-jobs-of-the-future.html
+
 Vitamin B-12 1000 MCG; Fish oil Omega 3 1000 MG; Folic Acid 400 MCG; Vitamin D 1000; Saline water
 
 Calcium -> take yogurt instead
