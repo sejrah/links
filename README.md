@@ -52,6 +52,8 @@ http://daveops.co.uk/category/aws?print=pdf-search
 
 http://aws.amazon.com/architecture
 
+Orion papers: http://bit.ly/2nB2gRi
+
 
 # Others
 
