@@ -1,0 +1,22 @@
+# Setup cli
+$cd ~/.aws
+$vi config
+[profile common-profile]
+region=us-east-1
+output=json
+
+[profile dev-profile]
+role_arn=arn:aws:iam::<accountid>:role/ops-crossaccountrole
+source_profile=common-profile
+
+$vi credentials
+[default]
+aws_access_key_id=<access key id>
+aws_secret_access_key=<access key>
+region=us-east-1
+
+[dev-profile]
+aws_access_key_id=<access key id>
+aws_secret_access_key=<access key>
+
+$aws iam list-account-aliases --profile dev-access

@@ -1,0 +1,131 @@
+Questions?
+    What are we using for Repository, ECR?
+    What is expected, Jenkins Image in repository?
+    How (EBS) volume 
+    Jenkins - need Selenium and that's why browser as well?
+    Jenkins for our use (Cloud team) or company wide - multiple masters, worker nodes?
+    What plugins to install? Git, SSH slaves
+    Security considerations:
+        Incoming traffic to Jenkins master - lock down to specific IP address ranges
+        Enable SSL
+        CSRF protection
+    Build wokers nodes to be general purpose
+    
+Excellent White paper: https://docs.aws.amazon.com/aws-technical-content/latest/jenkins-on-aws/jenkins-on-aws.html
+
+Jenkins: Open source automation server that provides hundreds of plugins to support building, deploying and automating
+    any project
+
+Two approaches (out of many)
+    Traditional - Jenkins on EC2
+    Containerized that leverages ECS
+
+How to integrate with other AWS services? Using using plugins
+
+Jenkins use cases:
+    Traditional development pipelines
+    Mobile development
+    Security requirements
+
+Continuous Integration
+    Software development proctice in which developers regularly merge their code changes
+    into a central repository, after which automated builds and tests are run
+Continuous Delivery
+    Software development practice where code changes are automatically built, tested,
+    and prepared for production release
+
+Recommended that Jenkins installation is within a VPC
+    Separation from other resources
+    Ability to control over static instance IP addresses - important as you add worker nodes to your configuration
+
+Jenkins architecture
+    Out of box it's deployed as both a server and a build agent running on same host
+    You can choose to deploy Jenkins as either a server or a build agent,
+        which allows for decoupling and build execution
+Traditional Deployment
+    Strategies for Worker node
+        By default, Jenkins server will handle all HTTP requests as well as the builds for each project
+        For reasons like user growth or number of builds, master server may experience degraded performance
+        Worker nodes (build agents)
+            Benefits:
+                Frees up master node
+                Provides customized environment in which to test builds
+            It contains an agent that communicates with the master server and runs a lightweight Jenkins
+                build that  allows to receive and run offloaded jobs
+    Strategies for Master node
+        Two scenarios
+            a single, large server with multiple worker nodes connected to it
+            multiple smaller master servers with multiple worker nodes connected to each
+        In larger systems, do not build on master
+        Another strategy is to deploy a single Jenkins master, but architecting it to be self-healing and highly available
+                
+                                        Single Master Strategy          Multi Master Strategy 
+        Number of teams                 Few                             Many 
+        Plugins                         Consistent set across all teams Varied set across teams 
+        Custom configurations per team  Harder to manage                Easier to manage 
+        Server maintenance              Easier to manage                Harder to manage 
+        
+    High availability
+        Regions and AZs; ELB
+        Challenge: Due to the fact that Jenkins stores master node configuration in the $JENKINS_HOME directory (and not database)
+            it becomes problematic to maintain a redundunt Jenkins server in separate AZin single master setup withou the aid of plugins
+            Tasks like configuring Jenkins, maintaining plugins, and managing users would need to be repeasted across each instance in each AZ
+            Use plugins like below to setup $JENKINS_HOME directory on a shared network drive
+                "High Availability Plugin" from CloudBees
+                    https://www.cloudbees.com/products/cloudbees-jenkins-platform/enterprise-edition/features/high-availability-plugin
+                "Private SaaS Edition" by CloudBees
+                    https://www.cloudbees.com/products/cloudbees-core
+            Alternatively, use CloudWatch alarm and automatically recovers the instance
+            Consider decoupling configuration storage from Jenkins compute node
+    Resource Considerations
+        OS: Amazon Linux, other flavors of Linux, Windows
+        CPU and Networking:
+            Number of worker nodes that connect to a master nodes
+            Master node launches multiple thread per connection - two for each SSH and Java Web Start (JWS) connection and three for each HTTP connection
+            Jenkins serves dashboard over HTTP
+        Storage:
+            For large team, ensure worker nodes perform the build. For that, important to have large storage volumes on worker nodes than on master
+            Jenkins settings and build logs are stored on master by default
+            Consider EBS
+        Instance Type:
+            Benchmark project builds (simulate traffic from 100 some users loading multiple pages inside Jenkins dashboard for sustained period of 10 minutes)
+                on several EC2 instance types in order to select most appropriate configuration
+                m4.large (it has 2 vCPUs and 8 GB memory, EBS of general purpose SSD of 20 GB attached to instance) found to be best value 
+    Security Considerations:
+        Incoming traffic to the Jenkins master should be locked down to the specific IP address ranges
+        Enable SSL: Front Jenkins master with ELB - use AWS Certificate Manager to provision certificate
+        CSRF protection (Cross-site Request forgery): it's enable by default (Mahage Jenkins -> Condifugre Global Security -> Enable Prevent Cross-site Request Forgery Exploits)
+        Security Implication of Building Master:
+            Do not perform builds on master; Configure master to have no executors and run builds only on the worker nodes
+                Builds that are run on tha master have ability to read and modify files in $JENKINS_HOME
+        Worker Node Access Control: Manage Jenkins -> Confugre global Security -> Enable Slave -> Master Access Control
+        Configure User Authentication: Through dashboard, AD, LDAP
+        Securing Network Access: Security Group
+    Worker Nodes
+        Offloads build projects from the master
+        Runs worker agent, which eliminates need to install full Jenkins package on those instances
+        Build wokers nodes to be general purpose rather then building them for a specific project
+        Build workers nodes in such a way that they can be replaced easily
+        Consider using Spot instances
+        Worker nodes connect to master in variety of ways -> via SSH, via windows Remote Management Facilty, via Java Web Start, or via custom script
+            For linux port 22 is most convenient and preferred method for launching worker agents
+        m4.large (it has 2 vCPUs and 8 GB memory, EBS of general purpose SSD of 40 GB attached to instance)
+        Installation:
+            Launch instance; attach security group that allows ingress to worker nodes via SSH from inter IP address of the master
+            Create ssh key from master; Copy public key to worker's ~/.ssh/authorized keys
+        Configuration:
+            Login to Jenkins management dashboard: Manage Jenkins -> Manage Nodes -> New Node -> ...
+            At end configure number of executors on master node to be 0
+    Decoupling condiguration of Jenkins Installation:
+
+Containerized Deployment
+    ...
+    ...
+    # Login using docker command returned by the command below
+    aws ecr get-login --region region
+    # Build your Docker image using the Dockerfile 
+    docker build -t jenkins-master .
+    # Tag the jenkins_master image
+    docker tag jenkins_master:latest AWS Account Number.dkr.ecr.us-east-1.amazonaws.com/jenkins_master:latest
+    # Push the jenkins-master image to ECR 
+    docker push AWS Account Number.dkr.ecr.us-east-1.amazonaws.com/jenkins-master:latest

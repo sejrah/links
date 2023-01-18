@@ -1,0 +1,69 @@
+Setup Raspberry pi:
+Flash Raspbian Stertch Lite into SD card using Etcher.io
+  https://www.raspberrypi.org/downloads/raspbian/
+Create an empty ssh file in boot partition
+ssh to Raspberry Pi (master)
+user/password: pi/raspberry
+open config using raspi-config (or edit /boot/config.txt)
+  Name master (worker1, worker2)
+  Change memory split between GPU and system to 16mb, since we are going to run headless app on this RPis (gpu_mem=16)
+$sudo apt-get update
+Add this to /etc/dhcpcd.conf
+profile static_eth0
+static ip_address=192.168.0.0/24
+static routers=192.168.0.3
+static domain_name_servers=8.8.8.8
+
+Install docker:
+$curl -sSL https://get.docker.com | sh
+$usermod pi -aG docker
+newgrp docker
+(optional) change default password - $sudo passwd pi
+
+Repeat above steps for remaining Raspberry pi with different "static routers"
+
+Create Swarm:
+$docker swarm init
+Run this from other Raspberry pi
+$docker swarm join --token SWMTKN-1-... ... ...
+From master $docker node ls
+
+Extra
+$docker swarm leave
+$docker images
+$docker rmi $(docker images)
+$docker ps -a
+$docker rm $(docker ps -aq)
+$docker stack deploy func --compose-file docker-compose.armhf.yml
+$docker stack rm func
+$docker node promote <node_name>
+$docker service ls
+
+Install OpenFaas:
+OpenFaas - is framework for docker that lets any process or container become a serverless function
+$sudo apt install git
+$cd /home/pi
+$git clone https://github.com/alexellis/faas/
+$sudo cd faas
+$sudo ./deploy_stack.armhf.sh
+Docker swarm instructs other other RPi to start pulling docker images from the internet and extracting them to the SD card
+To watch progress - $watch 'docker service ls'
+Browse to http://192.168.0.2:8080
+
+Tip:
+Always create image from this base image only - resin/rpi-raspbian; See alexellis/docker-arm
+
+For Kubernetes:
+Disable swap
+$sudo dphys-swapfile swapoff && \
+sudo dphys-swapfile uninstall && \
+sudo update-rc.d dphys-swapfile remove
+This should return nothing
+sudo swapon --summary
+edit /boot/cmdline.txt -> add at end of line -> cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory
+must reboot at this time
+Add repo lists & install kubeadm
+$curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - && \
+  echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list && \
+  sudo apt-get update -q && \
+  sudo apt-get install -qy kubeadm

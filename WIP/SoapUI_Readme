@@ -1,0 +1,15 @@
+Sample password = changeit
+
+keytool -import -trustcacerts -alias my_Entrust_root -file EntrustCertificationAuthority-L1E.crt -keystore cacerts
+keytool -import -trustcacerts -alias my_???service -file ???service.cer -keystore cacerts\
+
+Import the certs into soapui lib/security/cacerts.jks
+
+Add these 3 lines to soapui vmptions file in soapui..bin folder  
+
+To test for restricted tls1.2 only if you are asked then keep only tls1.2 in the below options..
+
+-Dsoapui.https.protocols=TLSv1,TLSv1.1,TLSv1.2
+-Dsoapui.https.cipherSuites=TLS_RSA_WITH_AES_256_CBC_SHA256
+-Dhttps.protocols=TLSv1,TLSv1.1,TLSv1.2
+

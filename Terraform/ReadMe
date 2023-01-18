@@ -1,0 +1,60 @@
+# install unzip
+sudo yum install unzip
+sudo yum/apt-get install unzip
+
+# unzip terraform
+cd /home/ec2-user/download
+curl -o https://releases.hashicorp.com/terraform/0.11.7/terraform_0.11.7_linux_amd64.zip > sudo unzip /usr/local/bin/terraform
+terraform -v
+
+# create working directory
+cd /home/ec2-user/
+mkdir /home/ec2-user/terraform && cd /home/ec2-user/terraform
+
+
+# write code
+vi main.tf
+    terraform {
+        required_providers {
+            docker = {
+                source = "kreuzwerker/docker"
+                version = ">=2.13.0"
+            }
+        }
+    }
+
+    resource "docker_image" "nginx" {
+        name            = "nginx:latest"
+        keep_locally    = false
+    }
+
+    resource "docker_container" nginx {
+        image   = docker_image.nginx.latest
+        name    = "tutorial"
+        ports {
+            internal    = 80
+            external    = 80
+        }
+    }
+
+terraform init
+# format code
+terraform fmt
+terraform validate
+terrafrom plan -var-file=tfvars/dev.tfvars -out=dev.out
+terraform show -json dev.out
+terraform apply -parallelism=20 dev.out
+
+
+terraform state show
+terrafrom state list
+terraform state show aws_instance.terraform-test-instance
+
+# others
+terraform graph
+sudo yum install graphviz
+terraform graph -verbose | dot -Tpng > terraform_graph.png
+
+terraform destroy
+
+terraform import aws_instance.example i-07095d2dbf622149d

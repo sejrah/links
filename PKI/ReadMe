@@ -1,0 +1,30 @@
+Create CSR:
+    Key:
+        openssl genrsa -out server.key 4096
+    CSR:
+        openssl req -new -key server.key -nodes -out server.csr \
+	        -subj "/C=US/ST=DC/L=Washington/O=organization/OU=some ou/CN=dashboard.mycompany.com" \
+	        -addext "subjectAltName=DNS:dashboard.mycompany.com"
+    
+    Verify:
+        openssl req -in server.csr -noout -text
+
+Create CA:
+    CA Key:
+        openssl genrsa -out ca.key 4096
+    CA Certificate:
+        openssl req -new -x509 -nodes -days 365 -key ca.key -out ca.crt \
+        -subj "/C=US/ST=DC/L=Washington/O=organization/OU=some ou/CN=dashboard.mycompany.com"
+    Sign CSR:
+        openssl x509 -req -in server.csr -CAkey ca.key -CA ca.crt -set_serial -01 -out server.crt -days 36500 -sha256 \
+	    -extfile <(printf "subjectAltName=DNS:dashboard.mycompany.com")
+	Verify:
+	    openssl verify -CAfile ca.crt server.crt
+	    
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout server.key -out server.crt
+
+Verify key and certificate:
+    openssl rsa -in server.key -check
+    openssl x509 -in server.crt -text -noout
+    openssl verify -CAfile ca.crt server.crt
+    openssl s_client -host localhost -port 443 | openssl x509 -noout -dates
